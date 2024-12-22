@@ -16,7 +16,7 @@ function AuthenticatedApp() {
   useEffect(() => {
     const fetchSavedScripts = async () => {
       try {
-        const response = await axios.get('https://clipwise.onrender.com/scripts', {
+        const response = await axios.get('https://clipwise.onrender.com/api/scripts', {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -36,7 +36,7 @@ function AuthenticatedApp() {
     try {
      
       const response = await axios.post(
-        'https://clipwise.onrender.com/scripts/save',
+        'https://clipwise.onrender.com/api/scripts/save',
         {
           prompt: script.prompt,
           script: script.script,
