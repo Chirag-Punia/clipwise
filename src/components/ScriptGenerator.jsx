@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import { readFileContent } from '../utils/fileUtils';
 import { LanguageSelector } from './LanguageSelector';
 import { FileUploader } from './FileUploader';
 import { ScriptDisplay } from './ScriptDisplay';
+import { generateScript as generateScriptApi } from '../services/api';
 
 export default function ScriptGenerator({ onSaveScript }) {
   const [prompt, setPrompt] = useState('');
@@ -16,9 +16,9 @@ export default function ScriptGenerator({ onSaveScript }) {
   const onDrop = useCallback(async (acceptedFiles) => {
     try {
       const fileContents = await Promise.all(
-        acceptedFiles.map(file => readFileContent(file))
+        acceptedFiles.map((file) => readFileContent(file))
       );
-      
+
       const newPrompt = prompt + '\n' + fileContents.join('\n');
       setPrompt(newPrompt);
       toast.success('File content added to prompt');
@@ -26,17 +26,6 @@ export default function ScriptGenerator({ onSaveScript }) {
       toast.error('Error processing file');
     }
   }, [prompt]);
-
-  const handleUrlInput = async (url) => {
-    try {
-      const response = await axios.get(url);
-      const newPrompt = prompt + '\n' + response.data;
-      setPrompt(newPrompt);
-      toast.success('URL content added to prompt');
-    } catch (error) {
-      toast.error('Error fetching URL content');
-    }
-  };
 
   const generateScript = async () => {
     if (!prompt.trim()) {
@@ -46,12 +35,8 @@ export default function ScriptGenerator({ onSaveScript }) {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:3000/api/scripts/generate', {
-        prompt,
-        language: selectedLanguage
-      });
-      
-      setGeneratedScript(response.data.script);
+      const response = await generateScriptApi(prompt, selectedLanguage);
+      setGeneratedScript(response.script);
       toast.success('Script generated successfully');
     } catch (error) {
       toast.error('Error generating script');
@@ -60,15 +45,22 @@ export default function ScriptGenerator({ onSaveScript }) {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (generatedScript) {
-      onSaveScript({
-        prompt,
-        script: generatedScript,
-        language: selectedLanguage,
-        date: new Date().toISOString()
-      });
-      toast.success('Script saved successfully');
+      try {
+       
+        await onSaveScript({
+          prompt,
+          script: generatedScript,
+          language: selectedLanguage,
+          date: new Date().toISOString(),
+        });
+        toast.success('Script saved successfully');
+      } catch (error) {
+        toast.error('Error saving script');
+      }
+    } else {
+      toast.error('No script to save');
     }
   };
 
@@ -99,7 +91,7 @@ export default function ScriptGenerator({ onSaveScript }) {
           >
             {isLoading ? 'Generating...' : 'Generate Script'}
           </button>
-          
+
           {generatedScript && (
             <button
               onClick={handleSave}

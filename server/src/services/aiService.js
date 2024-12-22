@@ -2,13 +2,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import dotenv from "dotenv";
 
 dotenv.config();
-
 const anthropic = new Anthropic({
   apiKey: process.env.X_AI_API_KEY,
   baseURL: "https://api.x.ai/",
 });
 
-const MAX_TOKENS = 4096; // Maximum context length for the model
+const MAX_TOKENS = 4096;
 
 export async function generateScriptWithAI(prompt, language = "en") {
   try {
@@ -21,9 +20,8 @@ export async function generateScriptWithAI(prompt, language = "en") {
           content: `Generate a video script in ${language} based on this prompt: ${prompt}`,
         },
       ],
-      temperature: 0.7, // Add some creativity while maintaining coherence
+      temperature: 0.7,
     });
-    console.log(response.content);
 
     if (!response.content) {
       throw new Error("No content received from AI service");
